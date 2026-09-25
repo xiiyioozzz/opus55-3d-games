@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>鹈鹕骑单车 · Pelican on a Bike</title>
+<meta name="description" content="一只戴着头盔和围巾的白鹈鹕，骑着复古自行车沿海岸线追鱼。实时 3D：程序化建模、IK 骨骼、布料围巾、Gerstner 海浪、昼夜循环与合成音乐。" />
+<meta property="og:title" content="鹈鹕骑单车 · Pelican on a Bike" />
+<meta property="og:description" content="实时 3D 海岸骑行：鹈鹕、单车、海浪、落日与一篮子鱼。" />
+<!--OG_IMAGE-->
+<meta name="theme-color" content="#0d1424" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='16' cy='48' r='11' fill='none' stroke='%23138a8a' stroke-width='5'/%3E%3Ccircle cx='48' cy='48' r='11' fill='none' stroke='%23138a8a' stroke-width='5'/%3E%3Cellipse cx='26' cy='26' rx='13' ry='9' fill='%23f6f3ec'/%3E%3Ccircle cx='38' cy='12' r='6' fill='%23f6f3ec'/%3E%3Cpath d='M42 11 L62 17 L42 17 Z' fill='%23f5b857'/%3E%3C/svg%3E" />
+<style>
+:root {
+  --glass: rgba(14, 20, 34, 0.52);
+  --glass-strong: rgba(10, 14, 26, 0.72);
+  --stroke: rgba(255, 255, 255, 0.14);
+  --text: #f4f6fb;
+  --muted: rgba(236, 240, 250, 0.66);
+  --accent: #ffb547;
+  --accent-2: #3fd0c9;
+  --danger: #ff5a6e;
+  --radius: 16px;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  --font: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --glass: rgba(18, 24, 40, 0.5); }
+}
+:root[data-theme="dark"] { --glass: rgba(14, 20, 34, 0.52); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1424; color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; touch-action: none; user-select: none; -webkit-user-select: none; }
+#app, #app canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+button { font: inherit; color: inherit; }
+
+/* ---------- 开场 ---------- */
+#intro { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; overflow-y: auto; padding: 24px 16px; touch-action: pan-y; background: radial-gradient(120% 90% at 70% 10%, rgba(255, 150, 90, 0.28), transparent 60%), linear-gradient(180deg, rgba(10, 14, 30, 0.55), rgba(8, 10, 22, 0.82)); backdrop-filter: blur(3px); transition: opacity 0.9s ease, visibility 0.9s; }
+body.started #intro { opacity: 0; visibility: hidden; pointer-events: none; }
+.intro-card { width: min(640px, 100%); text-align: center; margin: auto; }
+.intro-art { width: min(300px, 70vw); height: auto; margin: 0 auto 6px; display: block; filter: drop-shadow(0 12px 30px rgba(0,0,0,0.4)); }
+.intro-art .wheel { transform-box: fill-box; transform-origin: center; animation: spin 1.1s linear infinite; }
+.intro-art .road { stroke-dasharray: 18 14; animation: road 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes road { to { stroke-dashoffset: -32; } }
+.intro-art .bob { animation: bob 0.55s ease-in-out infinite alternate; }
+@keyframes bob { to { transform: translateY(2px); } }
+h1 { margin: 0; font-size: clamp(34px, 7vw, 60px); letter-spacing: 0.04em; font-weight: 900; background: linear-gradient(92deg, #fff7e6, #ffc27a 45%, #ff8a5b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sub { margin: 8px 0 18px; color: var(--muted); font-size: clamp(14px, 2.4vw, 17px); line-height: 1.6; }
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 24px; }
+.chip { padding: 5px 11px; border-radius: 999px; font-size: 12.5px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--stroke); color: rgba(255,255,255,0.86); }
+.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-primary { border: 0; cursor: pointer; padding: 14px 30px; border-radius: 999px; font-size: 17px; font-weight: 800; letter-spacing: 0.05em; color: #2a1400; background: linear-gradient(135deg, #ffd27a, #ff9a4d); box-shadow: 0 10px 30px rgba(255, 140, 60, 0.45), inset 0 1px 0 rgba(255,255,255,0.6); transition: transform 0.15s ease, box-shadow 0.2s; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(255, 140, 60, 0.55); }
+.btn-ghost { cursor: pointer; padding: 14px 22px; border-radius: 999px; font-size: 15px; background: rgba(255,255,255,0.08); border: 1px solid var(--stroke); }
+.btn-ghost:hover { background: rgba(255,255,255,0.14); }
+.keys-hint { margin-top: 20px; color: var(--muted); font-size: 12.5px; line-height: 1.9; }
+.intro-links { margin-top: 16px; display: flex; gap: 20px; justify-content: center; }
+.intro-links a { color: var(--muted); text-decoration: none; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.15s; }
+.intro-links a:hover { color: #fff; }
+.intro-links svg { width: 14px; height: 14px; fill: currentColor; }
+kbd { display: inline-block; min-width: 22px; padding: 1px 6px; margin: 0 2px; border-radius: 6px; font: 600 11.5px/18px ui-monospace, Menlo, monospace; text-align: center; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-bottom-width: 2px; color: #fff; }
+
+/* ---------- HUD ---------- */
+.hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; opacity: 0; transition: opacity 0.8s ease 0.3s; }
+body.started .hud { opacity: 1; }
+body.hide-ui .hud, body.hide-ui .hud * { opacity: 0 !important; visibility: hidden !important; }
+.panel { pointer-events: auto; background: var(--glass); border: 1px solid var(--stroke); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); }
+.brand { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 16px; padding: 10px 14px; display: flex; gap: 10px; align-items: center; }
+.brand b { font-size: 15px; letter-spacing: 0.03em; }
+.brand small { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.brand .logo { font-size: 24px; }
+.tools { position: absolute; top: max(14px, env(safe-area-inset-top)); right: 16px; display: flex; gap: 6px; padding: 6px; }
+.icon-btn { pointer-events: auto; width: 38px; height: 38px; border-radius: 11px; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; font-size: 17px; transition: background 0.15s; position: relative; color: inherit; text-decoration: none; }
+.icon-btn svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+.icon-btn:hover { background: rgba(255,255,255,0.12); }
+.icon-btn.off::after { content: ""; position: absolute; width: 22px; height: 2px; background: var(--danger); transform: rotate(-45deg); border-radius: 2px; }
+.icon-btn.on { background: rgba(63, 208, 201, 0.22); }
+.cams { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; gap: 4px; padding: 5px; }
+.cams button { pointer-events: auto; border: 0; background: transparent; cursor: pointer; padding: 7px 12px; border-radius: 10px; font-size: 13px; color: var(--muted); white-space: nowrap; transition: all 0.15s; }
+.cams button:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.cams button.on { color: #1a1206; background: linear-gradient(135deg, #ffd27a, #ffab5e); font-weight: 700; }
+.dash { position: absolute; left: 16px; bottom: max(16px, env(safe-area-inset-bottom)); padding: 12px 16px 12px 12px; display: flex; gap: 14px; align-items: center; }
+.gauge { position: relative; width: 124px; height: 124px; flex: none; }
+.gauge svg { width: 100%; height: 100%; transform: rotate(135deg); }
+.gauge .bg { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 9; stroke-linecap: round; stroke-dasharray: 245 400; }
+.gauge .fg { fill: none; stroke: url(#gGrad); stroke-width: 9; stroke-linecap: round; stroke-dasharray: 245 400; transition: stroke-dashoffset 0.12s linear; }
+.gauge .val { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.gauge .val b { font-size: 36px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.gauge .val small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; letter-spacing: 0.08em; }
+.stats { display: grid; grid-template-columns: auto auto; gap: 5px 14px; font-size: 12.5px; align-items: baseline; }
+.stats span { color: var(--muted); }
+.stats b { font-variant-numeric: tabular-nums; font-size: 15px; text-align: right; }
+.score { position: absolute; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); padding: 12px 16px; min-width: 210px; }
+.score .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fish { display: flex; align-items: center; gap: 8px; }
+.fish .ico { font-size: 26px; }
+#fishCount { font-size: 34px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--accent); display: inline-block; }
+#fishCount.bump { animation: bump 0.45s ease; }
+@keyframes bump { 30% { transform: scale(1.35); color: #fff3c4; } }
+.ach { font-size: 12px; color: var(--muted); text-align: right; }
+.ach b { color: var(--text); font-size: 14px; }
+.timebar { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+.timebar input { flex: 1; accent-color: var(--accent); pointer-events: auto; cursor: pointer; }
+#clockVal { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 44px; }
+.hints { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(16px, env(safe-area-inset-bottom)); padding: 8px 14px; font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 560px); }
+.hints span { white-space: nowrap; }
+#fps { position: absolute; top: 72px; right: 18px; font: 11px ui-monospace, Menlo, monospace; color: var(--muted); padding: 4px 8px; }
+#toasts { position: fixed; top: 118px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 30; pointer-events: none; }
+.toast { display: flex; align-items: center; gap: 10px; padding: 10px 16px 10px 12px; border-radius: 14px; background: var(--glass-strong); border: 1px solid rgba(255, 210, 122, 0.35); box-shadow: var(--shadow); backdrop-filter: blur(12px); transform: translateY(-14px) scale(0.96); opacity: 0; transition: all 0.45s cubic-bezier(.2,1.4,.4,1); }
+.toast.in { transform: none; opacity: 1; }
+.toast .emo { font-size: 24px; }
+.toast b { display: block; font-size: 14px; }
+.toast small { color: var(--muted); font-size: 12px; }
+.pop { position: fixed; z-index: 25; pointer-events: none; font-weight: 900; font-size: 22px; color: #bff4ff; text-shadow: 0 2px 10px rgba(0, 180, 255, 0.8); transform: translate(-50%, -50%); animation: pop 1.1s ease-out forwards; }
+.pop.gold { color: #ffe08a; font-size: 26px; text-shadow: 0 2px 14px rgba(255, 160, 0, 0.9); }
+@keyframes pop { to { transform: translate(-50%, -160%); opacity: 0; } }
+#guiHost { position: fixed; top: 70px; right: 16px; z-index: 20; max-height: calc(100vh - 220px); overflow-y: auto; border-radius: 12px; }
+#guiHost .lil-gui.lil-root { --background-color: rgba(12, 16, 28, 0.78); --title-background-color: rgba(255, 181, 71, 0.16); --title-text-color: #ffe3b3; --widget-color: rgba(255,255,255,0.1); --hover-color: rgba(255,255,255,0.16); --focus-color: rgba(255,255,255,0.22); --number-color: #ffc27a; --string-color: #8ce8e2; --font-family: var(--font); --font-size: 12px; --input-font-size: 12px; --width: 270px; border-radius: 12px; overflow: hidden; backdrop-filter: blur(14px); border: 1px solid var(--stroke); }
+body:not(.started) #guiHost { display: none; }
+/* 电影模式黑边 */
+.bars::before, .bars::after { content: ""; position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: 5; transition: height 0.8s cubic-bezier(.6,0,.2,1); pointer-events: none; }
+.bars::before { top: 0; }
+.bars::after { bottom: 0; }
+body.cinematic.bars::before, body.cinematic.bars::after { height: 9vh; }
+body.cinematic.started .dash, body.cinematic.started .score, body.cinematic.started .hints { opacity: 0.35; }
+#cut { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 6; }
+#cut.go { animation: cut 0.38s ease; }
+@keyframes cut { 0% { opacity: 0; } 35% { opacity: 0.85; } 100% { opacity: 0; } }
+/* 帮助 */
+#help { position: fixed; inset: 0; z-index: 40; display: none; place-items: center; background: rgba(0,0,0,0.45); padding: 16px; }
+#help.show { display: grid; }
+#help .panel { max-width: 560px; width: 100%; padding: 22px 24px; }
+#help h3 { margin: 0 0 12px; }
+#help ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; font-size: 13.5px; }
+#help li { color: var(--muted); }
+#help .close { margin-top: 16px; }
+#help p { color: var(--muted); font-size: 12.5px; line-height: 1.7; margin: 14px 0 0; }
+/* 触屏控制 */
+.touch { display: none; }
+@media (pointer: coarse) {
+  .touch { display: block; }
+  .hints { display: none; }
+}
+.touch .pad { position: absolute; bottom: 150px; display: flex; gap: 10px; pointer-events: auto; }
+.touch .left { left: 16px; }
+.touch .right { right: 16px; flex-direction: column; align-items: flex-end; }
+.touch .rowb { display: flex; gap: 10px; }
+.tbtn { pointer-events: auto; width: 60px; height: 60px; border-radius: 50%; border: 1px solid var(--stroke); background: var(--glass); backdrop-filter: blur(10px); font-size: 22px; display: grid; place-items: center; touch-action: none; }
+.tbtn.on, .tbtn:active { background: rgba(255, 181, 71, 0.4); }
+.tbtn.big { width: 72px; height: 72px; }
+#fallback { position: fixed; inset: 0; display: grid; place-items: center; z-index: 99; background: #0d1424; padding: 24px; text-align: center; }
+@media (max-width: 900px) {
+  .cams { top: calc(max(14px, env(safe-area-inset-top)) + 58px); left: 16px; right: 16px; transform: none; overflow-x: auto; scrollbar-width: none; }
+  .cams::-webkit-scrollbar { display: none; }
+  .cams button { padding: 6px 9px; font-size: 12px; }
+  .brand small { display: none; }
+  .gauge { width: 96px; height: 96px; }
+  .gauge .val b { font-size: 28px; }
+  .score { min-width: 0; padding: 10px 12px; }
+  .stats { font-size: 11.5px; gap: 3px 10px; }
+  .stats b { font-size: 13px; }
+  .timebar { display: none; }
+  #help ul { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .brand > div { display: none; }
+  .dash { padding: 8px 10px 8px 8px; gap: 8px; }
+  .stats { display: none; }
+  .tools { gap: 4px; padding: 5px; }
+  .tools .icon-btn { width: 32px; height: 32px; font-size: 14px; }
+  .tools .icon-btn svg { width: 16px; height: 16px; }
+  .brand { padding: 8px 10px; }
+  .brand b { font-size: 13px; }
+}
+@media (max-width: 1180px) { .hints { display: none; } }
+@media (max-height: 620px) {
+  .intro-art { width: 150px; }
+  h1 { font-size: 30px; }
+  .sub { margin: 4px 0 10px; font-size: 13px; }
+  .chips { display: none; }
+  .keys-hint { margin-top: 10px; font-size: 11px; line-height: 1.7; }
+  .btn-primary { padding: 11px 24px; font-size: 15px; }
+  .btn-ghost { padding: 11px 18px; font-size: 13px; }
+}
+@media (max-height: 420px) { .keys-hint, .intro-art { display: none; } }
+@media (prefers-reduced-motion: reduce) { .intro-art * { animation: none !important; } }
+</style>
+</head>
+<body class="bars">
+<div id="app"></div>
+<div id="cut"></div>
+<div id="fallback" hidden>当前浏览器不支持 WebGL，无法显示 3D 场景。请换用新版 Chrome / Edge / Safari。</div>
+
+<section id="intro">
+  <div class="intro-card">
+    <svg class="intro-art" viewBox="0 0 300 190" aria-hidden="true">
+      <line class="road" x1="0" y1="178" x2="300" y2="178" stroke="rgba(255,255,255,0.5)" stroke-width="3" />
+      <g class="wheel"><circle cx="84" cy="140" r="36" fill="none" stroke="#3fd0c9" stroke-width="5"/><path d="M84 104 V176 M48 140 H120 M59 115 L109 165 M59 165 L109 115" stroke="#cfe" stroke-width="1.3"/></g>
+      <g class="wheel"><circle cx="210" cy="140" r="36" fill="none" stroke="#3fd0c9" stroke-width="5"/><path d="M210 104 V176 M174 140 H246 M185 115 L235 165 M185 165 L235 115" stroke="#cfe" stroke-width="1.3"/></g>
+      <path d="M84 140 L140 142 L186 98 L118 98 Z M140 142 L112 84 M210 140 L192 80 L178 78" fill="none" stroke="#138a8a" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+      <g class="bob">
+        <ellipse cx="120" cy="70" rx="46" ry="30" fill="#f6f3ec" transform="rotate(-18 120 70)"/>
+        <path d="M150 58 C 170 40, 150 22, 166 10" stroke="#f6f3ec" stroke-width="16" fill="none" stroke-linecap="round"/>
+        <circle cx="168" cy="12" r="13" fill="#f6f3ec"/>
+        <path d="M172 6 C 150 -8, 150 -8, 140 0" fill="#ff5a4e"/>
+        <path d="M176 10 L262 30 L178 22 Z" fill="#f7c25c"/>
+        <path d="M178 22 Q 220 52 256 32 L 262 30 Z" fill="#f5b857" opacity="0.9"/>
+        <circle cx="170" cy="11" r="2.6" fill="#1a0c08"/>
+        <path d="M100 76 L150 100" stroke="#19181b" stroke-width="7" stroke-linecap="round"/>
+        <path d="M118 92 L138 142" stroke="#f38a2a" stroke-width="5" stroke-linecap="round"/>
+        <path d="M150 50 C 120 40, 96 58, 70 50" stroke="#d7263d" stroke-width="7" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <h1>鹈鹕骑单车</h1>
+    <p class="sub">一只戴头盔、围红围巾的白鹈鹕，骑着复古单车沿海岸线追鱼。<br />黄昏、星空、海浪与路灯 —— 全部实时生成，无一张外部贴图。</p>
+    <div class="chips">
+      <span class="chip">程序化建模</span><span class="chip">双骨骼 IK 踩踏</span><span class="chip">Verlet 布料围巾</span><span class="chip">Gerstner 海浪</span><span class="chip">昼夜循环</span><span class="chip">合成音效 + 生成式音乐</span><span class="chip">抓鱼小游戏</span>
+    </div>
+    <div class="cta">
+      <button class="btn-primary" id="startBtn">开始骑行 ▶</button>
+      <button class="btn-ghost" id="startMute">静音进入</button>
+    </div>
+    <div class="keys-hint">
+      <kbd>W</kbd><kbd>S</kbd> 加速 / 刹车　<kbd>A</kbd><kbd>D</kbd> 变道抓鱼　<kbd>空格</kbd> 跳跃　<kbd>T</kbd> 放手特技<br />
+      <kbd>B</kbd> 按铃　<kbd>H</kbd> 鹈鹕大叫　<kbd>C</kbd> 切换镜头　<kbd>N</kbd> 快进 3 小时　点击鹈鹕 / 车铃 / 海面都有惊喜
+    </div>
+    <div class="intro-links">
+      <a href="https://github.com/xiiyioozzz/aiusage" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub 开源仓库</a>
+      <a href="https://x.com/xiiyioo" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>关注作者 X</a>
+    </div>
+  </div>
+</section>
+
+<div class="hud">
+  <div class="brand panel"><span class="logo">🐦</span><div><b>鹈鹕骑单车</b><small>Pelican on a Bike · 实时 3D</small></div></div>
+  <div class="cams panel">
+    <button data-cam="orbit">自由环绕</button>
+    <button data-cam="chase">追随</button>
+    <button data-cam="side">侧面跟拍</button>
+    <button data-cam="cine">电影运镜</button>
+    <button data-cam="pov">鹈鹕视角</button>
+  </div>
+  <div class="tools panel">
+    <button class="icon-btn" data-act="shot" title="截图 (K)">📸</button>
+    <button class="icon-btn" data-act="music" title="音乐 (M)">🎵</button>
+    <button class="icon-btn" data-act="share" title="复制分享链接">🔗</button>
+    <button class="icon-btn" data-act="full" title="全屏 (F)">⛶</button>
+    <button class="icon-btn" data-act="gui" title="参数面板">⚙️</button>
+    <button class="icon-btn" data-act="help" title="帮助">？</button>
+    <a class="icon-btn" href="https://github.com/xiiyioozzz/aiusage" target="_blank" rel="noopener noreferrer" title="GitHub 源码" aria-label="GitHub 源码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+    <a class="icon-btn" href="https://x.com/xiiyioo" target="_blank" rel="noopener noreferrer" title="X @xiiyioo" aria-label="X @xiiyioo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+  </div>
+  <div id="fps" class="panel" hidden></div>
+  <div class="dash panel">
+    <div class="gauge">
+      <svg viewBox="0 0 124 124">
+        <defs><linearGradient id="gGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3fd0c9"/><stop offset="0.6" stop-color="#ffc27a"/><stop offset="1" stop-color="#ff5a6e"/></linearGradient></defs>
+        <circle class="bg" cx="62" cy="62" r="52"/>
+        <circle class="fg" id="speedArc" cx="62" cy="62" r="52" style="stroke-dashoffset: 245"/>
+      </svg>
+      <div class="val"><div><b id="speedVal">0</b><small>KM/H</small></div></div>
+    </div>
+    <div class="stats">
+      <span>踏频</span><b><span id="cadVal" style="color:inherit">0</span> <small style="color:var(--muted);font-weight:400">rpm</small></b>
+      <span>档位</span><b id="gearVal">3/5</b>
+      <span>里程</span><b><span id="distVal" style="color:inherit">0.00</span> <small style="color:var(--muted);font-weight:400">km</small></b>
+      <span>镜头</span><b id="camLabel" style="font-size:13px">电影运镜</b>
+    </div>
+  </div>
+  <div class="hints panel">
+    <span><kbd>W</kbd>/<kbd>S</kbd> 加速刹车</span><span><kbd>A</kbd>/<kbd>D</kbd> 变道</span><span><kbd>空格</kbd> 跳</span><span><kbd>T</kbd> 特技</span><span><kbd>B</kbd> 铃</span><span><kbd>C</kbd> 镜头</span><span><kbd>U</kbd> 隐藏界面</span>
+  </div>
+  <div class="score panel">
+    <div class="row">
+      <div class="fish"><span class="ico">🐟</span><span id="fishCount">0</span></div>
+      <div class="ach">成就<br /><b id="achCount">0/14</b></div>
+    </div>
+    <div class="timebar">
+      <span id="sunIcon">🌅</span>
+      <input id="timeSlider" type="range" min="0" max="24" step="0.01" value="17.3" aria-label="时刻" />
+      <span id="clockVal">17:18</span>
+      <button class="icon-btn on" data-act="flow" title="时间流动" style="width:30px;height:30px;font-size:13px">⏯</button>
+    </div>
+  </div>
+  <div class="touch">
+    <div class="pad left">
+      <button class="tbtn big" data-key="left">◀</button>
+      <button class="tbtn big" data-key="right">▶</button>
+    </div>
+    <div class="pad right">
+      <div class="rowb"><button class="tbtn" data-act="bell">🔔</button><button class="tbtn" data-act="trick">🪽</button><button class="tbtn" data-act="jump">⤒</button></div>
+      <div class="rowb"><button class="tbtn big" data-key="down">▼</button><button class="tbtn big" data-key="up">▲</button></div>
+    </div>
+  </div>
+</div>
+<div id="toasts"></div>
+<div id="guiHost"></div>
+<div id="help">
+  <div class="panel">
+    <h3>操作说明</h3>
+    <ul>
+      <li><kbd>W</kbd>/<kbd>↑</kbd> 加速</li><li><kbd>S</kbd>/<kbd>↓</kbd> 刹车（滑行有棘轮声）</li>
+      <li><kbd>A</kbd>/<kbd>D</kbd> 左右变道抓鱼</li><li><kbd>空格</kbd> 跳跃</li>
+      <li><kbd>T</kbd> 放手展翅 + 抬前轮</li><li><kbd>B</kbd> 按车铃</li>
+      <li><kbd>H</kbd> 鹈鹕大叫</li><li><kbd>C</kbd> 切换镜头</li>
+      <li><kbd>Q</kbd>/<kbd>E</kbd> 手动换挡</li><li><kbd>N</kbd> 时间快进 3 小时</li>
+      <li><kbd>M</kbd> 音乐开关</li><li><kbd>K</kbd> 截图 · <kbd>F</kbd> 全屏</li>
+      <li><kbd>U</kbd> 隐藏界面</li><li><kbd>P</kbd> 暂停</li>
+    </ul>
+    <p>拖拽旋转视角、滚轮缩放。点击鹈鹕它会叫，点击车铃会响，点击远处海面会有鱼跃出。几秒不操作会自动驾驶去追鱼；金色的鱼值 5 分。背景音乐是实时合成的，节奏跟随踏频。</p>
+    <button class="btn-ghost close" data-act="help">知道了</button>
+  </div>
+</div>
+<script>
+/*APP_JS*/
+</script>
+</body>
+</html>

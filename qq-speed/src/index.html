@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>飞车 3D · QQ飞车同人还原</title>
+<meta name="description" content="浏览器里的 3D 竞速：还原 QQ飞车的 11城、情迷爱琴海、法老金字塔、雪地大冒险，支持漂移集气、小喷、双喷、氮气、道具赛。" />
+<style>
+:root{
+  --blue:#1d6ff2; --cyan:#27c7ff; --orange:#ff8a00; --yellow:#ffd23a; --pink:#ff5fa8;
+  --panel:rgba(10,20,48,.72); --panel2:rgba(16,32,72,.86); --line:rgba(120,190,255,.35);
+  --txt:#f4f8ff; --muted:#a9bddb;
+  --ui:"PingFang SC","Microsoft YaHei","Noto Sans SC","Hiragino Sans GB",sans-serif;
+  --num:"Arial Black","Impact","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a1430;color:var(--txt);font-family:var(--ui);user-select:none;-webkit-user-select:none;touch-action:none}
+canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hidden{display:none!important}
+#fx{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+#vignette{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(30,140,255,.35) 85%,rgba(60,190,255,.65) 100%)}
+#vignette.small{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 60%,rgba(255,150,40,.3) 90%,rgba(255,190,60,.55) 100%)}
+#hitflash{position:fixed;inset:0;pointer-events:none;background:rgba(255,60,40,.35);opacity:0;transition:opacity .3s}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none}
+.glass{background:var(--panel);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#rank{position:absolute;left:16px;top:16px;width:210px;padding:8px 0;font-size:14px}
+#rank .row{display:flex;align-items:center;gap:8px;padding:4px 12px;transition:background .2s}
+#rank .row .p{width:22px;font-family:var(--num);font-style:italic;color:var(--yellow);text-align:center}
+#rank .row .n{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rank .row .dot{width:10px;height:10px;border-radius:50%}
+#rank .row.me{background:linear-gradient(90deg,rgba(255,138,0,.55),rgba(255,138,0,0));font-weight:700}
+#rank .row.fin .n::after{content:" ✔";color:#6dff9e}
+#topc{position:absolute;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:12px;align-items:stretch}
+#timebox{padding:6px 18px;text-align:center;min-width:190px}
+#timebox .t{font-family:var(--num);font-size:28px;font-style:italic;letter-spacing:1px;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+#timebox .s{font-size:12px;color:var(--muted)}
+#lapbox{padding:6px 16px;text-align:center}
+#lapbox .l{font-family:var(--num);font-size:28px;font-style:italic;color:var(--yellow)}
+#lapbox .s{font-size:12px;color:var(--muted)}
+#items{display:flex;gap:8px;padding:6px 10px;align-items:center}
+#items .slot{width:54px;height:54px;border-radius:10px;border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:30px;background:rgba(255,255,255,.08);position:relative}
+#items .slot.first{border-color:var(--yellow);box-shadow:0 0 12px rgba(255,210,58,.6)}
+#items .slot small{position:absolute;bottom:-16px;font-size:11px;color:#fff;white-space:nowrap;text-shadow:0 1px 2px #000}
+#items .hint{font-size:11px;color:var(--muted);line-height:1.5;margin-left:4px}
+#minimap{position:absolute;right:16px;top:16px;width:210px;height:210px;padding:0}
+#minimap canvas{width:100%;height:100%}
+#bigrank{position:absolute;left:22px;bottom:118px;font-family:var(--num);font-style:italic;line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+#bigrank .r{font-size:86px;background:linear-gradient(180deg,#fff 20%,#ffd23a 60%,#ff8a00);-webkit-background-clip:text;background-clip:text;color:transparent}
+#bigrank .of{font-size:26px;color:#fff;opacity:.85}
+#speedo{position:absolute;right:18px;bottom:18px;width:230px;height:230px}
+#speedo canvas{width:100%;height:100%}
+#speedo .v{position:absolute;left:0;right:0;top:92px;text-align:center;font-family:var(--num);font-style:italic;font-size:52px;text-shadow:0 3px 0 rgba(0,0,0,.4)}
+#speedo .u{position:absolute;left:0;right:0;top:152px;text-align:center;font-size:13px;color:var(--muted);letter-spacing:2px}
+#gaugebox{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:10px 16px}
+#gauge{width:360px;height:18px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.25)}
+#gauge i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#27c7ff,#7af0ff 60%,#fff);box-shadow:0 0 14px #27c7ff}
+#gauge.full i{background:linear-gradient(90deg,#ffd23a,#fff3a8)}
+#gaugebox .lbl{font-size:12px;color:var(--muted);white-space:nowrap}
+.n2o{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-family:var(--num);font-size:12px;font-style:italic;color:rgba(255,255,255,.35);background:rgba(255,255,255,.06)}
+.n2o.on{color:#fff;border-color:#7af0ff;background:radial-gradient(circle,#27c7ff,#1d6ff2);box-shadow:0 0 16px #27c7ff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+#msgs{position:absolute;left:0;right:0;top:30%;display:flex;flex-direction:column;align-items:center;gap:6px}
+.msg{font-family:var(--num);font-style:italic;font-size:44px;letter-spacing:2px;color:#fff;
+  text-shadow:0 0 10px var(--c,#27c7ff),0 0 22px var(--c,#27c7ff),0 3px 0 rgba(0,0,0,.4);animation:msgIn 1.1s ease-out forwards}
+.msg.sm{font-size:26px}
+@keyframes msgIn{0%{transform:scale(2.2);opacity:0}12%{transform:scale(.95);opacity:1}20%{transform:scale(1)}80%{opacity:1}100%{transform:translateY(-30px);opacity:0}}
+#countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--num);font-style:italic;font-size:180px;color:#fff;
+  text-shadow:0 0 30px #ff8a00,0 8px 0 rgba(0,0,0,.35)}
+#countdown span{animation:cd .9s ease-out forwards}
+@keyframes cd{0%{transform:scale(2.6);opacity:0}25%{transform:scale(1);opacity:1}80%{opacity:1}100%{transform:scale(.7);opacity:0}}
+#warn{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:30px;font-weight:900;color:#ff4b4b;text-shadow:0 0 12px #f00;animation:blink .5s infinite alternate}
+@keyframes blink{to{opacity:.35}}
+#finalcount{position:absolute;left:50%;top:120px;transform:translateX(-50%);font-size:22px;font-weight:700;color:#ffd23a;text-shadow:0 2px 6px #000}
+#keys{position:absolute;left:16px;bottom:16px;padding:10px 12px;font-size:12px;line-height:1.75;color:#dfe9ff;max-width:300px}
+#keys b{display:inline-block;min-width:22px;padding:0 5px;margin-right:4px;border-radius:4px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);text-align:center;font-weight:700;color:#fff}
+#keys .close{color:var(--muted);font-size:11px}
+#songtip{position:absolute;right:250px;bottom:30px;font-size:13px;color:#fff;padding:6px 12px;opacity:0;transition:opacity .4s}
+#songtip.show{opacity:1}
+
+/* ---------- 触屏 ---------- */
+#touch{position:fixed;inset:0;pointer-events:none}
+#touch .tb{pointer-events:auto;position:absolute;width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;backdrop-filter:blur(4px)}
+#touch .tb.on{background:rgba(39,199,255,.5)}
+#t-left{left:24px;bottom:34px}#t-right{left:112px;bottom:34px}
+#t-drift{right:28px;bottom:120px;width:86px;height:86px}#t-nitro{right:124px;bottom:40px}#t-boost{right:124px;bottom:132px}#t-brake{left:68px;bottom:122px;width:58px;height:58px}#t-swap{right:220px;bottom:40px;width:58px;height:58px}
+body.touch #speedo{bottom:auto;top:236px;width:150px;height:150px;right:12px}
+body.touch #speedo .v{top:56px;font-size:34px}body.touch #speedo .u{top:96px}
+body.touch #keys,body.touch #bigrank{display:none}
+body.touch #gauge{width:180px}
+
+#clinks{position:fixed;top:236px;right:16px;z-index:30;display:flex;gap:8px}
+body.touch #clinks{top:16px;right:238px}
+#clinks a{pointer-events:auto;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;opacity:.55;background:rgba(10,16,34,.45);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:opacity .15s}
+#clinks a:hover{opacity:1}
+#clinks svg{width:18px;height:18px;fill:currentColor}
+@media (max-width:860px){#clinks{top:150px}body.touch #clinks{top:16px;right:158px}}
+
+/* ---------- 菜单 ---------- */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow:auto;padding:18px 16px}
+#menu{background:linear-gradient(180deg,rgba(8,20,55,.35),rgba(8,20,55,.78) 70%,rgba(8,20,55,.92))}
+.mlinks{display:flex;gap:18px;justify-content:center;margin-top:10px}
+.mlinks a{color:var(--muted);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:color .15s}
+.mlinks a:hover{color:#fff}
+.mlinks svg{width:14px;height:14px;fill:currentColor}
+.logo{font-family:var(--num);font-style:italic;font-size:64px;line-height:1;letter-spacing:4px;
+  background:linear-gradient(180deg,#fff 10%,#ffe36b 45%,#ff8a00 80%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 0 #0b3fb0) drop-shadow(0 0 18px rgba(39,199,255,.6));transform:skewX(-8deg)}
+.sub{margin:4px 0 12px;font-size:14px;color:#cfe3ff;letter-spacing:3px}
+.menu-grid{width:min(1100px,100%);display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+.card{padding:12px 16px}
+.card h3{font-size:14px;color:var(--cyan);letter-spacing:2px;margin-bottom:10px;font-weight:800}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{pointer-events:auto;cursor:pointer;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);font-size:14px;color:#e8f1ff;transition:all .15s}
+.opt:hover{background:rgba(255,255,255,.16)}
+.opt.sel{background:linear-gradient(135deg,var(--orange),#ffb13b);border-color:#ffd48a;color:#fff;font-weight:800;box-shadow:0 0 14px rgba(255,138,0,.5)}
+.opt small{display:block;font-size:11px;opacity:.8;font-weight:400}
+.maps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.map{cursor:pointer;border-radius:12px;padding:10px 12px;min-height:80px;position:relative;overflow:hidden;border:2px solid transparent;transition:transform .15s}
+.map:hover{transform:translateY(-2px)}
+.map.sel{border-color:#ffd23a;box-shadow:0 0 18px rgba(255,210,58,.55)}
+.map .nm{font-size:20px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,.4)}
+.map .en{font-family:var(--num);font-style:italic;font-size:11px;opacity:.85;letter-spacing:2px}
+.map .tg{font-size:12px;margin-top:6px;opacity:.95}
+.map[data-id=city]{background:linear-gradient(135deg,#2f7fe0,#6fc3ff 60%,#a6e1ff)}
+.map[data-id=aegean]{background:linear-gradient(135deg,#1d63c9,#5ab0ff 55%,#f4f1ea)}
+.map[data-id=egypt]{background:linear-gradient(135deg,#5b3f9e,#d99b3f 55%,#f3d58f)}
+.map[data-id=snow]{background:linear-gradient(135deg,#3f86d6,#bfe1ff 55%,#ffffff);color:#0b2750}
+.map[data-id=snow] .nm{text-shadow:none}
+.skins{display:flex;flex-wrap:wrap;gap:8px}
+.skin{cursor:pointer;width:44px;height:44px;border-radius:10px;border:2px solid rgba(255,255,255,.25);position:relative}
+.skin.sel{border-color:#ffd23a;box-shadow:0 0 12px rgba(255,210,58,.7);transform:scale(1.08)}
+#skinname{font-size:13px;color:#ffd23a;margin-top:8px;height:18px}
+.go{pointer-events:auto;cursor:pointer;margin-top:12px;padding:12px 64px;border:none;border-radius:40px;font-family:var(--ui);font-size:24px;font-weight:900;letter-spacing:6px;color:#fff;
+  background:linear-gradient(180deg,#ffb13b,#ff7a00);box-shadow:0 6px 0 #b34a00,0 0 30px rgba(255,138,0,.55);transition:transform .1s}
+.go:hover{transform:translateY(-2px)}
+.go:active{transform:translateY(3px);box-shadow:0 2px 0 #b34a00}
+.go.sec{background:linear-gradient(180deg,#4a8cff,#1d5fe0);box-shadow:0 6px 0 #0b3a9a}
+.keylist{font-size:13px;line-height:1.9;color:#dce8ff}
+.keylist b{display:inline-block;min-width:26px;padding:0 6px;margin-right:6px;border-radius:5px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);text-align:center;color:#fff}
+.tip{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px}
+.foot{margin-top:14px;font-size:11px;color:rgba(200,220,255,.6)}
+#loading{background:rgba(6,14,36,.85);z-index:20}
+#loading .bar{width:260px;height:6px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:14px}
+#loading .bar i{display:block;height:100%;width:30%;background:linear-gradient(90deg,#27c7ff,#fff);animation:load 1s infinite}
+@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+#pause,#result{background:rgba(6,14,36,.72);z-index:10}
+.box{padding:22px 26px;min-width:min(520px,100%);text-align:center}
+.box h2{font-size:30px;font-weight:900;margin-bottom:14px;letter-spacing:3px}
+.btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btns .go{padding:10px 30px;font-size:18px;letter-spacing:3px;margin-top:10px}
+table.res{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:15px}
+table.res th{color:var(--muted);font-weight:400;font-size:12px;padding:6px}
+table.res td{padding:8px 6px;border-top:1px solid rgba(255,255,255,.1)}
+table.res tr.me td{background:rgba(255,138,0,.3);font-weight:800}
+table.res td.pos{font-family:var(--num);font-style:italic;color:var(--yellow);font-size:20px}
+#resTitle.win{background:linear-gradient(180deg,#fff,#ffd23a 50%,#ff8a00);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stats{display:flex;gap:10px;justify-content:center;margin-bottom:8px;flex-wrap:wrap}
+.stat{padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.08);font-size:12px;color:var(--muted)}
+.stat b{display:block;font-size:18px;color:#fff;font-family:var(--num);font-style:italic}
+@media (max-width:860px){
+  .menu-grid{grid-template-columns:1fr}
+  .logo{font-size:52px}
+  #rank{width:150px;font-size:12px}
+  #minimap{width:130px;height:130px}
+  #gauge{width:200px}
+  .msg{font-size:30px}
+  #countdown{font-size:120px}
+}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="fx"></canvas>
+<div id="vignette"></div>
+<div id="hitflash"></div>
+
+<div id="hud" class="hidden">
+  <div id="rank" class="glass"></div>
+  <div id="topc">
+    <div id="lapbox" class="glass"><div class="l" id="lap">1/3</div><div class="s">圈数 LAP</div></div>
+    <div id="timebox" class="glass"><div class="t" id="time">00:00.00</div><div class="s" id="best">最佳单圈 --:--.--</div></div>
+    <div id="items" class="glass hidden">
+      <div class="slot first" id="slot0"></div><div class="slot" id="slot1"></div>
+      <div class="hint">Ctrl 使用<br>Alt 换位</div>
+    </div>
+  </div>
+  <div id="minimap" class="glass"><canvas id="mm" width="420" height="420"></canvas></div>
+  <div id="bigrank"><span class="r" id="rk">1</span><span class="of" id="rkof">/6</span></div>
+  <div id="speedo"><canvas id="sp" width="460" height="460"></canvas><div class="v" id="spd">0</div><div class="u">KM/H</div></div>
+  <div id="gaugebox" class="glass">
+    <span class="lbl" id="gaugelbl">集气</span>
+    <div id="gauge"><i id="gaugefill"></i></div>
+    <div class="n2o" id="n2o0">N₂O</div><div class="n2o" id="n2o1">N₂O</div>
+  </div>
+  <div id="msgs"></div>
+  <div id="countdown"></div>
+  <div id="warn" class="hidden"></div>
+  <div id="finalcount" class="hidden"></div>
+  <div id="songtip" class="glass"></div>
+  <div id="keys" class="glass">
+    <div><b>↑</b>油门 <b>↓</b>刹车/倒车 <b>←→</b>转向</div>
+    <div><b>Shift</b>+方向 漂移（按住越久角度越大）</div>
+    <div>出弯车身回正瞬间点按 <b>↑</b> 或 <b>W</b> = 小喷</div>
+    <div><b>Ctrl</b> 氮气 / 道具（<b>空格</b>同效）<b>Alt</b> 道具换位</div>
+    <div>小喷 + 氮气 = 双喷 · 落地瞬间点 <b>↑</b> = 落地喷</div>
+    <div><b>R</b>复位 <b>C</b>视角 <b>M</b>音乐 <b>PgUp/PgDn</b>切歌 <b>Esc</b>暂停</div>
+    <div class="close"><b>H</b> 隐藏/显示此面板</div>
+  </div>
+</div>
+
+<div id="clinks"><a href="https://github.com/xiiyioozzz/aiusage" target="_blank" rel="noopener noreferrer" title="GitHub 源码" aria-label="GitHub 源码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a><a href="https://x.com/xiiyioo" target="_blank" rel="noopener noreferrer" title="X @xiiyioo" aria-label="X @xiiyioo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a></div>
+
+<div id="touch" class="hidden">
+  <div class="tb" id="t-left">◀</div><div class="tb" id="t-right">▶</div><div class="tb" id="t-brake">刹</div>
+  <div class="tb" id="t-drift">漂移</div><div class="tb" id="t-nitro">氮气</div><div class="tb" id="t-boost">小喷</div><div class="tb" id="t-swap">换位</div>
+</div>
+
+<div id="menu" class="screen">
+  <div class="logo">飞车 3D</div>
+  <div class="sub">QQ飞车 同人还原 · 漂移 · 集气 · 小喷 · 双喷 · 氮气</div>
+  <div class="menu-grid">
+    <div class="glass card">
+      <h3>选择赛道</h3>
+      <div class="maps" id="maps"></div>
+      <h3 style="margin-top:14px">比赛模式</h3>
+      <div class="opts" id="modes"></div>
+    </div>
+    <div class="glass card">
+      <h3>选择赛车</h3>
+      <div class="skins" id="skins"></div>
+      <div id="skinname"></div>
+      <h3 style="margin-top:12px">圈数</h3>
+      <div class="opts" id="laps"></div>
+      <h3 style="margin-top:12px">对手水平</h3>
+      <div class="opts" id="diff"></div>
+      <h3 style="margin-top:12px">画质</h3>
+      <div class="opts" id="quality"></div>
+    </div>
+    <div class="glass card" style="grid-column:1/-1">
+      <h3>键位（还原端游默认）</h3>
+      <div class="keylist">
+        <b>↑</b>加速　<b>↓</b>刹车/倒车　<b>←</b><b>→</b>转向　<b>Shift</b>+方向 漂移　<b>Ctrl</b> 氮气/道具　<b>Alt</b> 道具换位　<b>W</b> 小喷　<b>R</b> 复位　<b>C</b> 切换视角　<b>M</b> 音乐　<b>PgUp/PgDn</b> 切歌　<b>Esc</b> 暂停
+      </div>
+      <div class="tip">技巧：漂移时集气条增长，集满获得 1 个氮气（最多 2 个）。松开 Shift 后车身回正的瞬间点一下 ↑ 触发小喷（越早越好，出现“完美”）；
+        小喷与氮气叠加即“双喷”。倒计时“GO”出现瞬间按 ↑ 可以起步加速；跳台落地瞬间点 ↑ 触发落地喷。蓝色箭头是加速带。</div>
+    </div>
+  </div>
+  <button class="go" id="start">开始比赛</button>
+  <div class="mlinks"><a href="https://github.com/xiiyioozzz/aiusage" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub 开源仓库</a><a href="https://x.com/xiiyioo" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>关注作者 X</a></div>
+  <div class="foot">非官方同人作品，致敬 QQ飞车。所有模型、贴图、音乐均为程序实时生成。</div>
+</div>
+
+<div id="loading" class="screen hidden"><div style="font-size:20px;font-weight:800;letter-spacing:3px" id="loadtxt">正在生成赛道…</div><div class="bar"><i></i></div></div>
+
+<div id="pause" class="screen hidden">
+  <div class="glass box">
+    <h2>暂停</h2>
+    <div class="btns">
+      <button class="go" id="resume">继续比赛</button>
+      <button class="go sec" id="restart">重新开始</button>
+      <button class="go sec" id="quit">返回大厅</button>
+    </div>
+  </div>
+</div>
+
+<div id="result" class="screen hidden">
+  <div class="glass box">
+    <h2 id="resTitle">比赛结束</h2>
+    <div class="stats" id="resStats"></div>
+    <table class="res"><thead><tr><th>名次</th><th>车手</th><th>总时间</th><th>最佳单圈</th></tr></thead><tbody id="resBody"></tbody></table>
+    <div class="btns">
+      <button class="go" id="again">再来一局</button>
+      <button class="go sec" id="back">返回大厅</button>
+    </div>
+  </div>
+</div>
+<!--APP_SCRIPT-->
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>一句话提示词 · 三个 3D 网页游戏</title>
+<meta name="description" content="三个可玩的 3D 网页游戏：鹈鹕骑单车、穿越火线·运输船、QQ 飞车。Three.js 实时渲染，单文件 HTML，无外部素材。" />
+<meta property="og:title" content="一句话提示词 · 三个 3D 网页游戏" />
+<meta property="og:description" content="鹈鹕骑单车 / 穿越火线·运输船 / QQ 飞车 —— 浏览器直接玩。" />
+<meta property="og:type" content="website" />
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  :root{
+    --bg:#070b16; --fg:#eaf1ff; --dim:#94a3c4; --line:rgba(160,190,255,.14);
+    --card:rgba(18,26,48,.72); --accent:#d97757;
+  }
+  html,body{margin:0;padding:0}
+  body{
+    min-height:100vh; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(1100px 620px at 12% -8%, rgba(217,119,87,.20), transparent 60%),
+      radial-gradient(900px 560px at 92% 4%, rgba(73,158,255,.20), transparent 62%),
+      radial-gradient(760px 520px at 50% 108%, rgba(120,90,220,.16), transparent 60%);
+  }
+  .wrap{width:100%; max-width:1080px; margin:0 auto; padding:clamp(32px,6vw,72px) clamp(18px,4vw,28px) 40px; flex:1}
+  header{text-align:center; margin-bottom:clamp(30px,5vw,48px)}
+  .eyebrow{
+    display:inline-block; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--accent); border:1px solid rgba(217,119,87,.4); border-radius:999px;
+    padding:5px 14px; margin-bottom:18px;
+  }
+  h1{margin:0 0 14px; font-size:clamp(28px,5.4vw,46px); line-height:1.2; letter-spacing:-.01em}
+  .sub{margin:0 auto; max-width:60ch; color:var(--dim); font-size:clamp(14px,2.4vw,17px)}
+  .grid{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .card{
+    display:flex; flex-direction:column; gap:10px;
+    padding:22px 22px 24px; border:1px solid var(--line); border-radius:16px;
+    background:var(--card); color:inherit; text-decoration:none;
+    transition:transform .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .card:hover,.card:focus-visible{transform:translateY(-4px); border-color:rgba(217,119,87,.55); background:rgba(26,36,64,.85)}
+  .card:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+  .emoji{font-size:34px; line-height:1}
+  .card h2{margin:0; font-size:19px}
+  .card p{margin:0; color:var(--dim); font-size:14px}
+  .meta{margin-top:auto; padding-top:12px; font-size:12.5px; color:var(--accent); letter-spacing:.02em}
+  .keys{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px}
+  .keys span{
+    font-size:11.5px; color:var(--dim); border:1px solid var(--line);
+    border-radius:6px; padding:2px 7px; background:rgba(255,255,255,.03);
+  }
+  .note{
+    margin:clamp(30px,5vw,44px) auto 0; max-width:70ch; text-align:center;
+    color:var(--dim); font-size:13.5px;
+  }
+  footer{
+    border-top:1px solid var(--line); padding:22px 20px 30px; text-align:center;
+    display:flex; flex-wrap:wrap; gap:8px 20px; justify-content:center; align-items:center;
+    font-size:13.5px; color:var(--dim);
+  }
+  footer a{color:var(--fg); text-decoration:none; display:inline-flex; align-items:center; gap:7px}
+  footer a:hover{color:var(--accent)}
+  footer svg{width:16px; height:16px; fill:currentColor}
+  @media (prefers-reduced-motion:reduce){.card{transition:none} .card:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Three.js · 实时 3D</span>
+    <h1>三个可以直接玩的 3D 网页游戏</h1>
+    <p class="sub">模型、纹理、动画、音效全部由代码程序化生成，不引用任何图片或音频素材。每个游戏都是单文件 HTML，打开即玩，建议用桌面浏览器配合键盘。</p>
+  </header>
+
+  <main class="grid">
+    <a class="card" href="/pelican/">
+      <div class="emoji" aria-hidden="true">🚲</div>
+      <h2>鹈鹕骑单车</h2>
+      <p>戴头盔墨镜的鹈鹕在海岸公路上骑车抓鱼。围巾是布料物理模拟，昼夜循环从黄昏到星空，海面有波浪与岸边碎浪。</p>
+      <div class="keys"><span>W / S 加速刹车</span><span>A / D 变道</span><span>空格 跳跃</span><span>T 特技</span><span>C 切换镜头</span></div>
+      <div class="meta">海岸公路休闲骑行 · 14 个成就 / 5 种镜头 →</div>
+    </a>
+
+    <a class="card" href="/transport-ship/">
+      <div class="emoji" aria-hidden="true">🔫</div>
+      <h2>运输船 · FPS 团队枪战</h2>
+      <p>长条形甲板、两端船舱出生点、中部 V 形斜放集装箱的经典对称地图。枪械弹道与后坐力、bots AI 对战、击杀播报。</p>
+      <div class="keys"><span>WASD 移动</span><span>鼠标 瞄准射击</span><span>Shift 疾跑</span><span>R 换弹</span><span>1-3 换枪</span></div>
+      <div class="meta">同人还原 · 18 个模块 →</div>
+    </a>
+
+    <a class="card" href="/qq-speed/">
+      <div class="emoji" aria-hidden="true">🏎️</div>
+      <h2>飞车 3D · 竞速漂移</h2>
+      <p>四张赛道：十一城、情迷爱琴海、法老金字塔、雪地大冒险。完整的漂移与氮气玩法，小喷与双喷都在。</p>
+      <div class="keys"><span>↑ / ↓ 油门刹车</span><span>← / → 转向</span><span>Shift 漂移</span><span>Ctrl 氮气</span></div>
+      <div class="meta">同人还原 · 4 张赛道 →</div>
+    </a>
+  </main>
+
+  <p class="note">首次加载需要下载约 700–850 KB 并编译着色器，进入后请稍等几秒。移动端可玩，三个游戏都带触屏控制，但操作手感以键鼠为准。</p>
+</div>
+
+<footer>
+  <a href="https://github.com/xiiyioozzz/aiusage" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    GitHub
+  </a>
+  <a href="https://x.com/xiiyioo" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+    X @xiiyioo
+  </a>
+  <span>游戏为技术演示用途的同人作品，与原厂无关</span>
+</footer>
+</body>
+</html>

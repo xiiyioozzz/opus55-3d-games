@@ -1,0 +1,22 @@
+{
+  "name": "qqcar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "xiiyioo",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "three": "^0.169.0"
+  },
+  "private": true,
+  "devDependencies": {
+    "playwright-core": "^1.63.0",
+    "wrangler": "^4.136.3"
+  }
+}
