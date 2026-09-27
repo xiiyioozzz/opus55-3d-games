@@ -91,7 +91,7 @@
     display:flex; flex-wrap:wrap; gap:8px 20px; justify-content:center; align-items:center;
     font-size:13.5px; color:var(--dim);
   }
-  footer a{color:var(--fg); text-decoration:none; display:inline-flex; align-items:center; gap:7px}
+  footer a{color:var(--fg); text-decoration:none; display:inline-flex; align-items:center; gap:7px; min-height:44px; padding:0 2px}
   footer a:hover{color:var(--accent)}
   footer svg{width:16px; height:16px; fill:currentColor}
   @media (prefers-reduced-motion:reduce){.card{transition:none} .card:hover{transform:none}}
@@ -106,7 +106,7 @@
     <ul class="rules">
       <li><b>一句话提示词</b>不写需求文档、不给参考代码、不做多轮追问</li>
       <li><b>单会话生成</b>查资料、搭工程、写代码、构建、测试、部署全由模型自主完成</li>
-      <li><b>零人工改动</b>游戏源码就是模型写出的原样，人工没有改过一行</li>
+      <li><b>零人工改动</b>生成过程中人工没有改过一行；玩法与渲染代码是模型原样输出</li>
       <li><b>真实部署</b>三个游戏都在线，点开即玩</li>
     </ul>
     <p class="sub tight">模型、纹理、动画、音效全部由代码程序化生成，不引用任何图片或音频素材。每个游戏都是单文件 HTML，建议用桌面浏览器配合键盘。</p>
@@ -156,6 +156,7 @@
   </section>
 
   <p class="note">首次加载需要下载约 700–850 KB 并编译着色器，进入后请稍等几秒。移动端可玩，三个游戏都带触屏控制，但操作手感以键鼠为准。</p>
+  <p class="note">模型的原始输出是按桌面 + 键鼠设计的，手机上有影响操作的 bug（菜单横向溢出导致选项点不到、开场页摇杆压住开始按钮、点击区小于 44px 等）。上线时做了移动端适配修复，只动 CSS 与链接，玩法和渲染逻辑仍是原样。<a href="https://github.com/xiiyioozzz/opus55-3d-games#说明" target="_blank" rel="noopener noreferrer">完整改动清单</a></p>
 </div>
 
 <footer>

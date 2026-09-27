@@ -93,11 +93,19 @@ body.touch #keys,body.touch #bigrank{display:none}
 body.touch #gauge{width:180px}
 
 #clinks{position:fixed;top:236px;right:16px;z-index:30;display:flex;gap:8px}
-body.touch #clinks{top:16px;right:238px}
+/* 菜单 / 暂停 / 结算展开时隐藏浮动链接：面板内 .mlinks 已有同样的两个链接 */
+body:has(.screen:not(.hidden)) #clinks{display:none}
+/* 触屏设备不显示浮动链接：会压住 logo，且游戏中容易误触 */
+@media (pointer:coarse){#clinks{display:none}}
 #clinks a{pointer-events:auto;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;opacity:.55;background:rgba(10,16,34,.45);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:opacity .15s}
 #clinks a:hover{opacity:1}
 #clinks svg{width:18px;height:18px;fill:currentColor}
-@media (max-width:860px){#clinks{top:150px}body.touch #clinks{top:16px;right:158px}}
+@media (max-width:860px){#clinks{top:150px}}
+/* 触屏：菜单里的选项按到 44px（Apple HIG 最小点击区），原来只有 38px */
+@media (pointer:coarse){
+  .opt{min-height:44px;display:inline-flex;flex-direction:column;justify-content:center}
+  .screen button,.screen a{min-height:44px}
+}
 
 /* ---------- 菜单 ---------- */
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow:auto;padding:18px 16px}

@@ -35,6 +35,8 @@ button{font-family:inherit}
 #clinks a:hover{opacity:1}
 #clinks svg{width:17px;height:17px;fill:currentColor}
 body.lk #clinks{opacity:.22}
+/* 触屏设备不显示浮动链接：菜单内 .mlinks 已有同样的两个链接，游戏中容易误触 */
+@media (pointer:coarse){#clinks{display:none}}
 .mlinks{margin-top:12px;font-size:12px;color:var(--hudDim);letter-spacing:1px;display:flex;gap:8px;justify-content:center}
 .mlinks a{color:var(--hudDim);text-decoration:none}
 .mlinks a:hover{color:var(--hud)}
@@ -187,4 +189,17 @@ body.lk #clinks{opacity:.22}
   .vbox .val{font-size:28px}.vbox{min-width:96px}
   #ammo .mag{font-size:34px}
   .cards{grid-template-columns:repeat(2,1fr)}
+  /* range input 有 ~129px 固有宽度，三列会把 .menuBox 撑破（内容在 overflow:auto 里横向滚动，用户看不到）*/
+  .row3{grid-template-columns:1fr}
+  .row3 .slider span{width:40px;font-size:13px}
+}
+/* 任何窄屏都别让滑块撑破容器 */
+.slider input{min-width:0}
+/* 触屏：菜单按钮按到 44px（Apple HIG 最小点击区）*/
+@media (pointer:coarse){
+  .seg button,.opts .seg button{min-height:44px;padding:8px 6px}
+  .card{min-height:44px}
+  .menuBox button,.menuBox a{min-height:44px}
+  .slider{min-height:44px}
+  .slider input{height:44px}
 }

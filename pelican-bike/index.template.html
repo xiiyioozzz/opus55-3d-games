@@ -142,6 +142,13 @@ body.cinematic.started .dash, body.cinematic.started .score, body.cinematic.star
 @media (pointer: coarse) {
   .touch { display: block; }
   .hints { display: none; }
+  /* 触屏上工具栏很挤，去掉两个链接按钮：开场页 .intro-links 已有同样的两个链接 */
+  .tools a.icon-btn { display: none; }
+  /* 开场页还没退场时不要渲染摇杆，否则 ◀▶▲▼ 压在开始 / 静音按钮上，点了就走错分支 */
+  body:not(.started) .touch { display: none; }
+  /* 点击区按到 44px */
+  .icon-btn { width: 44px; height: 44px; }
+  .cams button { min-height: 44px; padding: 6px 10px; }
 }
 .touch .pad { position: absolute; bottom: 150px; display: flex; gap: 10px; pointer-events: auto; }
 .touch .left { left: 16px; }
@@ -150,6 +157,25 @@ body.cinematic.started .dash, body.cinematic.started .score, body.cinematic.star
 .tbtn { pointer-events: auto; width: 60px; height: 60px; border-radius: 50%; border: 1px solid var(--stroke); background: var(--glass); backdrop-filter: blur(10px); font-size: 22px; display: grid; place-items: center; touch-action: none; }
 .tbtn.on, .tbtn:active { background: rgba(255, 181, 71, 0.4); }
 .tbtn.big { width: 72px; height: 72px; }
+/* 横屏（如 750x342）：右侧 pad 高 142px + bottom 150px 会顶到 .tools。
+   缩小 HUD、dash 挪到底部中间（横屏 .hints 已隐藏），摇杆压到两侧下角，互不重叠。
+   必须放在上面 .touch/.tbtn 基础规则之后，否则同特异性会被覆盖 */
+@media (pointer: coarse) and (max-height: 480px) {
+  .tbtn { width: 48px; height: 48px; font-size: 18px; }
+  .tbtn.big { width: 54px; height: 54px; }
+  .touch .pad, .touch .rowb { gap: 8px; }
+  .touch .left { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .touch .right { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .dash { left: 50%; transform: translateX(-50%); bottom: max(12px, env(safe-area-inset-bottom)); padding: 8px 12px; }
+  .gauge { width: 64px; height: 64px; }
+  .gauge .val b { font-size: 20px; }
+  .gauge .val small { display: none; }
+  .stats { display: none; }
+  /* 右下角让给摇杆，得分挪到 .tools 下方（横屏 .cams 已隐藏，右上是空的）*/
+  .score { top: calc(max(14px, env(safe-area-inset-top)) + 64px); bottom: auto; right: 16px; padding: 8px 10px; min-width: 0; }
+  .timebar { display: none; }
+  .cams { display: none; }
+}
 #fallback { position: fixed; inset: 0; display: grid; place-items: center; z-index: 99; background: #0d1424; padding: 24px; text-align: center; }
 @media (max-width: 900px) {
   .cams { top: calc(max(14px, env(safe-area-inset-top)) + 58px); left: 16px; right: 16px; transform: none; overflow-x: auto; scrollbar-width: none; }
@@ -174,6 +200,14 @@ body.cinematic.started .dash, body.cinematic.started .score, body.cinematic.star
   .brand { padding: 8px 10px; }
   .brand b { font-size: 13px; }
 }
+/* 放在 560px 块之后：触屏上点击区优先于紧凑排版（链接图标已隐藏，4 个 44px 图标放得下）*/
+@media (pointer: coarse) {
+  .tools .icon-btn { width: 44px; height: 44px; font-size: 16px; }
+  .tools .icon-btn svg { width: 18px; height: 18px; }
+  .timebar .icon-btn { width: 40px !important; height: 40px !important; }
+  .intro-links a { min-height: 44px; padding: 0 4px; }
+  .cams button { min-width: 48px; }
+}
 @media (max-width: 1180px) { .hints { display: none; } }
 @media (max-height: 620px) {
   .intro-art { width: 150px; }
@@ -181,8 +215,8 @@ body.cinematic.started .dash, body.cinematic.started .score, body.cinematic.star
   .sub { margin: 4px 0 10px; font-size: 13px; }
   .chips { display: none; }
   .keys-hint { margin-top: 10px; font-size: 11px; line-height: 1.7; }
-  .btn-primary { padding: 11px 24px; font-size: 15px; }
-  .btn-ghost { padding: 11px 18px; font-size: 13px; }
+  .btn-primary { padding: 11px 24px; font-size: 15px; min-height: 44px; }
+  .btn-ghost { padding: 11px 18px; font-size: 13px; min-height: 44px; }
 }
 @media (max-height: 420px) { .keys-hint, .intro-art { display: none; } }
 @media (prefers-reduced-motion: reduce) { .intro-art * { animation: none !important; } }
